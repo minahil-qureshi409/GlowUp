@@ -416,7 +416,7 @@ Roughly in order of value:
    smoothing, streak edge cases and gym-window boundaries.
 3. **Google Calendar push notifications** so busy blocks stay fresh without a manual
    refresh.
-4. **Apple (CalDAV) and Outlook (Graph)** providers behind the existing interface.
+4. **Outlook (Graph)** provider behind the existing interface.
 5. **Client-side image compression** before upload.
 6. **Template editing in the UI** — templates are seeded and usable but not yet editable
    (exercises can be added to any session ad hoc).

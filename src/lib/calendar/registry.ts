@@ -8,9 +8,9 @@ import { CalendarError, type CalendarProvider } from '@/lib/calendar/types';
 /**
  * Provider registry.
  *
- * Adding Apple later means writing one module that satisfies `CalendarProvider`
- * and adding it here — nothing in the routes, services or UI changes, because
- * they all address providers by id.
+ * Adding another provider means writing one module that satisfies
+ * `CalendarProvider` and adding it here — nothing in the routes, services or
+ * UI changes, because they all address providers by id.
  */
 const PROVIDERS: Partial<Record<Enums<'calendar_provider'>, CalendarProvider>> = {
   google: googleCalendarProvider,
@@ -42,7 +42,7 @@ export type ProviderSummary = {
 };
 
 /**
- * Every provider the UI shows, implemented or not.
+ * Every implemented provider the UI shows.
  *
  * `configured` reads the environment, so a deployment with no Microsoft
  * credentials shows the honest "Not configured" state instead of a Connect
@@ -59,15 +59,6 @@ export function listProviders(): ProviderSummary[] {
       permissionSummary: provider.permissionSummary,
       manageAccessUrl: provider.manageAccessUrl,
     };
-  });
-
-  summaries.push({
-    id: 'apple',
-    label: 'Apple Calendar',
-    configured: false,
-    available: false,
-    permissionSummary: 'Planned. It will use the same busy-times-only access.',
-    manageAccessUrl: null,
   });
 
   return summaries;

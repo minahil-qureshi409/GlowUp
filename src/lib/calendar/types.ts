@@ -3,8 +3,8 @@ import type { Enums } from '@/lib/db/database.types';
 /**
  * Calendar provider contract.
  *
- * Google and Microsoft implement it; Apple (CalDAV) would slot in behind the
- * same shape. Nothing outside `lib/calendar` knows which provider is in play —
+ * Providers implement this same shape. Nothing outside `lib/calendar` knows
+ * which provider is in play —
  * the routes, services and UI all address providers by id.
  *
  * The interface intentionally exposes **only free/busy**. There is no method to

@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 
 import { PageHeader, SectionHeader } from '@/components/common/page-header';
-import AppleConnectButton from '@/components/calendar/AppleConnectButton';
 import { ConnectionCard } from '@/components/calendar/connection-card';
 import { WeekView, type WeekDayData } from '@/components/calendar/week-view';
 
@@ -149,7 +148,6 @@ export default async function CalendarPage({
               timezone={timezone}
             />
           ))}
-          <AppleConnectButton />
         </div>
       </section>
     </div>
