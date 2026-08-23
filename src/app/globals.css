@@ -1,0 +1,260 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * GlowUp tokens.
+ * Light is the base; `.dark` redefines only what changes. Nothing gets its sole
+ * definition inside `.dark`, so a missing class can never leave a colour unset.
+ */
+@layer base {
+  :root {
+    color-scheme: light;
+
+    --background: 30 38% 98%;
+    --foreground: 300 12% 16%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 300 12% 16%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 300 12% 16%;
+
+    --primary: 325 39% 40%;
+    --primary-foreground: 30 40% 99%;
+    --primary-soft: 325 45% 95%;
+
+    --secondary: 300 22% 96%;
+    --secondary-foreground: 300 14% 26%;
+
+    --muted: 30 20% 95%;
+    /*
+     * 43% rather than 45%: at 45% this cleared 4.5:1 against the page and the
+     * card but only reached 4.45:1 against `--muted` itself, and the tinted
+     * `bg-muted/60` panels are exactly where the smallest text lives. 43%
+     * clears AA on all three surfaces (4.78 / 5.33 / 5.11).
+     */
+    --muted-foreground: 300 6% 43%;
+
+    --accent: 24 52% 93%;
+    --accent-foreground: 20 30% 26%;
+
+    --destructive: 358 62% 46%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 160 52% 30%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 34 78% 38%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 315 14% 90%;
+    --input: 315 14% 88%;
+    --ring: 325 39% 45%;
+
+    --shadow-color: 315 30% 30%;
+
+    --grad-from: 325 36% 46%;
+    --grad-to: 20 55% 72%;
+    --grad-veil: 325 55% 88%;
+
+    --domain-nutrition: 24 62% 42%;
+    --domain-workout: 325 39% 40%;
+    --domain-skincare: 265 34% 48%;
+    --domain-weight: 168 62% 26%;
+
+    --radius: 0.875rem;
+
+    /*
+     * Chart palette — literal hex, validated per mode with the data-viz
+     * validator (lightness band, chroma floor, protan/deutan separation,
+     * normal-vision floor, contrast vs the card surface). Slots are assigned in
+     * fixed order and never cycled; do not tint, reorder, or extend these
+     * without re-running the validator.
+     */
+    --chart-1: #8e3f6e; /* plum   — primary series (weight, main metric) */
+    --chart-2: #c4761d; /* amber  — nutrition */
+    --chart-3: #109b7e; /* teal   — trend / secondary */
+    --chart-4: #4b4bc4; /* indigo — workout volume */
+    --chart-5: #ce5e85; /* rose   — skincare */
+
+    --chart-grid: 315 14% 91%;
+    /* Axis labels are body-size text, so they need 4.5:1, not 3:1. */
+    --chart-axis: 300 6% 45%;
+    --chart-surface: 0 0% 100%;
+
+    /* Sequential ramp (single hue, light -> dark) for magnitude encodings. */
+    --seq-100: #f2dbe8;
+    --seq-200: #e2b6d0;
+    --seq-300: #cd8cb2;
+    --seq-400: #b46693;
+    --seq-500: #9a4a79;
+    --seq-600: #7d3760;
+    --seq-700: #5e2747;
+  }
+
+  .dark {
+    color-scheme: dark;
+
+    --background: 295 16% 8%;
+    --foreground: 30 22% 94%;
+
+    --card: 291 12% 11%;
+    --card-foreground: 30 22% 94%;
+
+    --popover: 291 14% 13%;
+    --popover-foreground: 30 22% 94%;
+
+    --primary: 328 46% 72%;
+    --primary-foreground: 300 30% 12%;
+    --primary-soft: 322 22% 20%;
+
+    --secondary: 295 10% 17%;
+    --secondary-foreground: 30 18% 90%;
+
+    --muted: 295 10% 16%;
+    --muted-foreground: 300 6% 66%;
+
+    --accent: 20 18% 20%;
+    --accent-foreground: 24 46% 88%;
+
+    --destructive: 358 62% 62%;
+    --destructive-foreground: 300 30% 10%;
+
+    --success: 160 44% 56%;
+    --success-foreground: 300 30% 10%;
+
+    --warning: 36 72% 60%;
+    --warning-foreground: 300 30% 10%;
+
+    --border: 295 9% 20%;
+    --input: 295 9% 24%;
+    --ring: 328 46% 66%;
+
+    --shadow-color: 295 40% 3%;
+
+    --grad-from: 325 34% 42%;
+    --grad-to: 20 34% 46%;
+    --grad-veil: 325 40% 30%;
+
+    --domain-nutrition: 28 62% 66%;
+    --domain-workout: 328 46% 72%;
+    --domain-skincare: 265 48% 74%;
+    --domain-weight: 165 44% 56%;
+
+    --chart-1: #ac5c87;
+    --chart-2: #c4801f;
+    --chart-3: #25ac88;
+    --chart-4: #7a76da;
+    --chart-5: #d2698a;
+
+    --chart-grid: 295 9% 21%;
+    --chart-axis: 300 6% 62%;
+    --chart-surface: 291 12% 11%;
+
+    --seq-100: #3a2233;
+    --seq-200: #4f2c45;
+    --seq-300: #683857;
+    --seq-400: #83486d;
+    --seq-500: #9d5c84;
+    --seq-600: #b6759c;
+    --seq-700: #cf93b4;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings:
+      'cv02' 1,
+      'cv03' 1,
+      'cv04' 1;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Respect the platform reduced-motion setting for every decorative animation. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Visible, on-brand focus ring for keyboard users only. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer components {
+  .surface-card {
+    @apply rounded-2xl border border-border/70 bg-card text-card-foreground shadow-soft;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Safe-area padding so the bottom nav clears the iOS home indicator. */
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+
+  .pt-safe {
+    padding-top: max(env(safe-area-inset-top), 0px);
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /*
+   * Long-form reading, used by the legal pages. Deliberately minimal: these
+   * documents have to stay legible and are not a place for personality.
+   */
+  .prose-glow h1 {
+    @apply font-display text-2xl font-semibold tracking-tight;
+  }
+
+  .prose-glow h2 {
+    @apply pt-2 font-display text-lg font-semibold tracking-tight;
+  }
+
+  .prose-glow p,
+  .prose-glow li {
+    @apply text-sm leading-relaxed text-muted-foreground;
+  }
+
+  .prose-glow ul {
+    @apply list-disc space-y-1.5 pl-5;
+  }
+
+  .prose-glow a {
+    @apply text-primary underline-offset-4 hover:underline;
+  }
+
+  .prose-glow strong {
+    @apply font-medium text-foreground;
+  }
+}
+
+@layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}

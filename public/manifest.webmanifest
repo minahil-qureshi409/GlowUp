@@ -1,0 +1,12 @@
+{
+  "name": "GlowUp",
+  "short_name": "GlowUp",
+  "description": "A calm wellness tracker for weight gain, strength, nutrition and skincare.",
+  "start_url": "/today",
+  "display": "standalone",
+  "background_color": "#fdfaf7",
+  "theme_color": "#fdfaf7",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
