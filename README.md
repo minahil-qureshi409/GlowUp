@@ -23,6 +23,7 @@ render them.
 - [Supabase setup](#supabase-setup)
 - [Google Calendar setup](#google-calendar-setup)
 - [Local development](#local-development)
+- [Installing as an app (PWA)](#installing-as-an-app-pwa)
 - [Deployment](#deployment)
 - [Known limitations](#known-limitations)
 - [Future improvements](#future-improvements)
@@ -350,6 +351,53 @@ npm run db:types    # regenerate DB types (needs SUPABASE_PROJECT_ID + linked CL
 
 ---
 
+## Installing as an app (PWA)
+
+GlowUp installs to a phone home screen and launches standalone — no address bar, no
+browser chrome. There is no native wrapper and no app store; it is the same Next.js app.
+
+| Piece | Where |
+|---|---|
+| Manifest | [`src/app/manifest.ts`](src/app/manifest.ts) — a route, not a static file, so Next links it into every page's `<head>` automatically |
+| Icons | `public/icon-*.png`, generated from the vector mark by `npm run icons` |
+| Service worker | [`public/sw.js`](public/sw.js), registered in production only by [`ServiceWorkerRegistrar`](src/components/pwa/service-worker.tsx) |
+| Offline fallback | [`/offline`](src/app/offline/page.tsx) — static, public in middleware, precached at install |
+
+**Installing.** iOS: Safari → Share → *Add to Home Screen* (Safari only; Chrome on iOS
+cannot install). Android: Chrome offers an install prompt, or Menu → *Install app*.
+Desktop Chrome and Edge show an install icon in the address bar. **HTTPS is required** —
+a PWA cannot be installed from `localhost` onto a phone, so deploy first.
+
+### What the service worker caches, and what it must never cache
+
+Every page here is `force-dynamic` and user-scoped: Today renders someone's weight, habits
+and mood. Cache Storage is plain, origin-scoped, readable data that survives sign-out — so
+a worker that cached HTML would leave one person's health record on disk for whoever picks
+the device up next.
+
+- **Cached:** immutable build output under `/_next/static/` plus four static assets. All
+  content-hashed or versioned; none of it is personal.
+- **Never cached:** navigations, RSC payloads, `/api/*`, `/auth/*`, `/monitoring`, anything
+  cross-origin, anything that is not a GET.
+
+Offline you get an honest "you are offline" page, never a stale copy of yesterday's data
+presented as today's. Sign-out drops every cache as a belt-and-braces measure.
+
+### Two icon purposes, deliberately separate
+
+`any` icons are drawn as given and keep their rounded corners. `maskable` icons are
+composited under a shape the launcher picks — circle, squircle, teardrop — so they are
+full-bleed with the mark pulled into the centre 80%. Serving one file for both is how icons
+end up with clipped corners or a small logo floating in a white square.
+
+`apple-touch-icon.png` is separate again, and flattened to remove the alpha channel: iOS
+ignores both SVG and the manifest icon list for home-screen icons, and renders any
+transparency as black.
+
+Re-run `npm run icons` after changing the mark or the brand gradient.
+
+---
+
 ## Deployment
 
 **Vercel** is the path of least resistance:
@@ -361,6 +409,9 @@ npm run db:types    # regenerate DB types (needs SUPABASE_PROJECT_ID + linked CL
 4. Add `https://<your-domain>/api/calendar/google/callback` to the Google OAuth client and
    set `GOOGLE_REDIRECT_URI` to match.
 5. Deploy.
+6. Open the deployed site on your phone and install it — see
+   [Installing as an app](#installing-as-an-app-pwa). This step needs HTTPS, which is why
+   it comes after deploying.
 
 Any Node host works — nothing depends on Vercel-specific APIs. All pages are
 `force-dynamic` because every read is user-scoped and time-sensitive, so there is nothing

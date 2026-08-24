@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { LiveClock } from '@/components/layout/live-clock';
+import { clearServiceWorkerCaches } from '@/components/pwa/service-worker';
 import { initialsFrom } from '@/lib/format';
 import { createClient } from '@/lib/supabase/client';
 import type { Enums } from '@/lib/db/database.types';
@@ -45,6 +46,7 @@ export function AppHeader({
   async function signOut() {
     const supabase = createClient();
     await supabase.auth.signOut();
+    await clearServiceWorkerCaches();
     window.location.href = '/login';
   }
 

@@ -21,6 +21,13 @@ const PUBLIC_ROUTES = [
   '/api',
   // Sentry's ingest tunnel. Errors have to be reportable from a signed-out page.
   '/monitoring',
+  /*
+   * The service worker's offline fallback. It has to be fetchable with no
+   * session — it is precached at install time, which happens before anyone
+   * has signed in, and redirecting it to /login would cache a login page as
+   * the thing shown when the network drops.
+   */
+  '/offline',
 ];
 
 /** Signing in on these would be pointless or actively wrong. */
@@ -92,7 +99,11 @@ export const config = {
     /*
      * Everything except static assets and image optimisation, so the session
      * cookie is refreshed on real navigations only.
+     *
+     * `sw.js` needs naming explicitly: it is a .js file, so the extension list
+     * does not cover it, and a service worker that gets redirected to /login
+     * fails to register at all.
      */
-    '/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };

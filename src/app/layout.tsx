@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { DM_Sans, Instrument_Serif } from 'next/font/google';
 
 import { Providers } from '@/components/providers';
+import { ServiceWorkerRegistrar } from '@/components/pwa/service-worker';
 
 import './globals.css';
 
@@ -30,7 +31,26 @@ export const metadata: Metadata = {
   description:
     'A calm wellness tracker for weight gain, strength, nutrition and skincare — built around consistency rather than a rigid schedule.',
   applicationName: 'GlowUp',
+  /*
+   * `capable` is what makes an iOS home-screen launch open without Safari's
+   * chrome. `statusBarStyle: 'default'` keeps the status bar legible in both
+   * themes — 'black-translucent' would slide the page under the clock, and
+   * this layout has no allowance for that.
+   */
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'GlowUp' },
+  /*
+   * The SVG is the tab favicon; the PNG is the fallback for anything that will
+   * not render one. `apple-touch-icon` is separate because iOS ignores both
+   * SVG and the manifest's icon list for home-screen icons — without this
+   * entry it screenshots the page instead.
+   */
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
   formatDetection: { telephone: false },
 };
 
@@ -51,6 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning className={`${dmSans.variable} ${instrumentSerif.variable}`}>
       <body className="min-h-dvh bg-background font-sans">
         <Providers>{children}</Providers>
+        <ServiceWorkerRegistrar />
       </body>
     </html>
   );
