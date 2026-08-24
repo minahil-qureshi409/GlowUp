@@ -24,7 +24,7 @@ export default async function SkincareSettingsPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="font-display text-xl font-semibold tracking-tight">
+          <h1 className="font-display text-xl tracking-tight">
             Skincare products &amp; routines
           </h1>
           <p className="text-xs text-muted-foreground">

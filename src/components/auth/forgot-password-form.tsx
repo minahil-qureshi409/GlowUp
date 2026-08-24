@@ -48,7 +48,7 @@ export function ForgotPasswordForm() {
     return (
       <div className="surface-card space-y-3 p-6 text-center">
         <MailCheck className="mx-auto size-8 text-primary" aria-hidden="true" />
-        <h1 className="font-display text-xl font-semibold">Check your inbox</h1>
+        <h1 className="font-display text-xl">Check your inbox</h1>
         <p className="text-sm text-muted-foreground">
           If <span className="font-medium text-foreground">{sent}</span> has a GlowUp account, a
           reset link is on its way. It expires in an hour.

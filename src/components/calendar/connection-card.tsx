@@ -60,13 +60,7 @@ export function ConnectionCard({ provider, connection, timezone }: ConnectionCar
   function remove() {
     startTransition(async () => {
       const result = await disconnect(provider.id);
-      if (result.ok) {
-        toast.success(
-          provider.manageAccessUrl && provider.id === 'outlook'
-            ? 'Disconnected. Remove GlowUp at myapps.microsoft.com to clear the consent too.'
-            : 'Calendar disconnected.',
-        );
-      }
+      if (result.ok) toast.success('Calendar disconnected.');
       else toast.error(result.error);
       setConfirmingDisconnect(false);
     });
@@ -179,16 +173,9 @@ export function ConnectionCard({ provider, connection, timezone }: ConnectionCar
         <AlertDialogContent>
           <AlertDialogTitle>Disconnect {provider.label}?</AlertDialogTitle>
           <AlertDialogDescription>
-            Every stored token and every cached busy block is deleted, and suggestions fall back to
-            your typical work hours. You can reconnect any time.
-            {provider.id === 'outlook' ? (
-              <>
-                {' '}
-                Microsoft offers no way for an app to revoke its own access, so remove GlowUp at{' '}
-                <span className="font-medium">myapps.microsoft.com</span> as well if you want the
-                consent gone from your account too.
-              </>
-            ) : null}
+            Every stored token and every cached busy block is deleted, the grant is revoked at
+            Google, and suggestions fall back to your typical work hours. You can reconnect any
+            time.
           </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>

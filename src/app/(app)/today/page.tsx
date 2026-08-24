@@ -1,15 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Dumbbell, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ProgressRing } from '@/components/common/progress-ring';
 import { HabitChecklist } from '@/components/habits/habit-checklist';
 import { SuggestionCard } from '@/components/today/suggestion-card';
 import { GreetingHeader } from '@/components/today/greeting-header';
 import { DayContextCard } from '@/components/today/day-context-card';
+import { GlowScoreCard } from '@/components/glow/glow-score-card';
+import { VitalsRow } from '@/components/glow/vitals-row';
+import { WaterCard } from '@/components/glow/water-card';
 import { LogWeightDialog } from '@/components/weight/log-weight-dialog';
 import { ReminderScheduler } from '@/components/reminders/reminder-scheduler';
 
@@ -23,18 +23,20 @@ import {
 } from '@/services/habits';
 import { getLatestWeightEntry, getWeightEntries, getWeightGoal } from '@/services/weight';
 import { getWorkouts } from '@/services/workouts';
-import { getEntriesForDate } from '@/services/skincare';
+import { getEntriesForDate, getRoutines } from '@/services/skincare';
 import { getBusyBlocksForDate } from '@/services/calendar';
 import { getDefaultRecipe } from '@/services/nutrition';
+import { getDailyMetric, WATER_GOAL_GLASSES } from '@/services/daily';
 
 import { attachStatus, summariseDay, dailyPercentMap, currentStreak } from '@/lib/domain/habits';
 import { buildDailyPlan } from '@/lib/domain/planner';
 import { buildInsights } from '@/lib/domain/insights';
-import { summariseWeight, progressMilestones } from '@/lib/domain/weight';
+import { summariseWeight } from '@/lib/domain/weight';
 import { calculateRecipeNutrition } from '@/lib/domain/nutrition';
 import { workoutsThisWeek } from '@/lib/domain/workout';
+import { buildGlowSummary, energyFromSleep, MOOD_LABELS } from '@/lib/domain/glow';
 import { TONE } from '@/lib/domain/copy';
-import { daysBetween, subDaysKey, todayIn, weekStartKey } from '@/lib/date';
+import { daysBetween, subDaysKey, todayIn } from '@/lib/date';
 import { formatDelta, formatWeightNumber } from '@/lib/format';
 
 export const metadata: Metadata = { title: 'Today' };
@@ -49,7 +51,6 @@ export default async function TodayPage() {
   const now = new Date();
   const timezone = context.profile.timezone;
   const today = todayIn(timezone, now);
-  const weekStart = weekStartKey(today);
   const thirtyDaysAgo = subDaysKey(today, 29);
 
   const [
@@ -61,9 +62,11 @@ export default async function TodayPage() {
     weightGoal,
     recentWorkouts,
     skincareToday,
+    routines,
     busy,
     dismissed,
     defaultRecipe,
+    metric,
   ] = await Promise.all([
     getActiveHabits(supabase, userId),
     getCompletionsForDate(supabase, userId, today),
@@ -73,9 +76,11 @@ export default async function TodayPage() {
     getWeightGoal(supabase, userId),
     getWorkouts(supabase, userId, { from: subDaysKey(today, 27) }),
     getEntriesForDate(supabase, userId, today),
+    getRoutines(supabase, userId),
     getBusyBlocksForDate(supabase, userId, today, timezone),
     getDismissedSuggestions(supabase, userId, today),
     getDefaultRecipe(supabase, userId),
+    getDailyMetric(supabase, userId, today),
   ]);
 
   const habitsWithStatus = attachStatus(habits, todayCompletions);
@@ -90,17 +95,6 @@ export default async function TodayPage() {
     today,
   });
 
-  const milestones = progressMilestones(
-    weightGoal.milestones.map((m) => ({
-      id: m.id,
-      label: m.label,
-      targetKg: m.target_value,
-      achievedAt: m.achieved_at,
-    })),
-    summary.current,
-  );
-  const nextMilestone = milestones.find((m) => m.isNext) ?? null;
-
   const completedThisWeek = workoutsThisWeek(recentWorkouts, today);
   const workoutLoggedToday = recentWorkouts.some(
     (workout) => workout.workout_date === today && workout.status === 'completed',
@@ -108,6 +102,34 @@ export default async function TodayPage() {
 
   const skincareAmDone = skincareToday.some((e) => e.period === 'am' && e.status === 'completed');
   const skincarePmDone = skincareToday.some((e) => e.period === 'pm' && e.status === 'completed');
+
+  // Steps across both routines, so the pillar reflects the ritual rather than
+  // a coarse done/not-done per period.
+  const skincareRequired = routines.reduce(
+    (total, routine) => total + routine.steps.filter((step) => !step.is_optional).length,
+    0,
+  );
+  const skincareCompleted = skincareToday.reduce(
+    (total, entry) =>
+      total +
+      entry.step_completions.filter((c) => c.status === 'completed' || c.status === 'modified')
+        .length,
+    0,
+  );
+
+  const glow = buildGlowSummary({
+    habits: habitsWithStatus,
+    workoutsCompletedThisWeek: completedThisWeek,
+    workoutsPerWeek: context.settings.workouts_per_week,
+    workoutLoggedToday,
+    skincare: {
+      required: skincareRequired,
+      completed: Math.min(skincareCompleted, skincareRequired),
+    },
+    sleepHours: metric?.sleep_hours ?? null,
+    waterGlasses: metric?.water_glasses ?? 0,
+    waterGoal: WATER_GOAL_GLASSES,
+  });
 
   const daysSinceLastWeighIn = latestWeight ? daysBetween(latestWeight.entry_date, today) : null;
 
@@ -150,12 +172,36 @@ export default async function TodayPage() {
   const habitDetails = Object.fromEntries(
     habitsWithStatus
       .filter((habit) => habit.recipe_id && recipeNutrition)
-      .map((habit) => [habit.id, `≈ ${recipeNutrition!.calories} kcal · ${recipeNutrition!.proteinG} g protein`]),
+      .map((habit) => [
+        habit.id,
+        `≈ ${recipeNutrition!.calories} kcal · ${recipeNutrition!.proteinG} g protein`,
+      ]),
   );
-  const workoutTarget = context.settings.workouts_per_week;
+
+  const energy = energyFromSleep(metric?.sleep_hours ?? null);
+  const vitals = [
+    {
+      label: 'Streak',
+      value: streak > 0 ? String(streak) : '—',
+      hint: streak === 1 ? 'day' : 'days',
+    },
+    {
+      label: 'Mood',
+      value: metric?.mood ? (MOOD_LABELS[metric.mood] ?? '—') : '—',
+      hint: metric?.mood ? 'you logged' : 'not logged',
+    },
+    { label: 'Energy', value: energy.label, hint: energy.hint },
+  ];
+
+  const subGreeting =
+    dayProgress.completed >= 3
+      ? "You're on a roll today."
+      : dayProgress.completed > 0
+        ? 'Nicely started.'
+        : "Let's make today count.";
 
   return (
-    <div className="animate-fade-up space-y-5 py-3">
+    <div className="animate-fade-up space-y-4 py-4">
       {/*
         Renders nothing. Lives here rather than in the layout so it always has
         today's habit statuses and busy blocks to reason about.
@@ -174,80 +220,35 @@ export default async function TodayPage() {
         timezone={timezone}
         timeFormat={context.profile.time_format}
         fallbackGreeting={plan.greeting}
+        subGreeting={subGreeting}
       />
 
-      {/* ── weight hero ─────────────────────────────────────────────────── */}
-      <Card className="overflow-hidden">
-        <div className="bg-gradient-veil">
-          <CardContent className="flex items-center gap-5 p-5">
-            <div className="min-w-0 flex-1 space-y-1">
-              <div className="flex items-baseline gap-1.5">
-                <span className="font-display text-display-md leading-none">
-                  {formatWeightNumber(summary.current)}
-                </span>
-                <span className="text-base text-muted-foreground">kg</span>
-              </div>
+      <GlowScoreCard summary={glow} />
 
-              <p className="text-sm text-muted-foreground">
-                {summary.goal ? `Goal ${summary.goal} kg` : 'No goal set yet'}
-                {summary.weeklyChangeKg !== null ? (
-                  <span className="ml-2 tabular">
-                    {formatDelta(summary.weeklyChangeKg)} this week
-                  </span>
-                ) : null}
-              </p>
+      <VitalsRow vitals={vitals} />
 
-              {nextMilestone && summary.current !== null ? (
-                <p className="pt-1 text-xs text-muted-foreground">
-                  Next milestone {nextMilestone.targetKg} kg
-                </p>
-              ) : null}
-            </div>
-
-            <ProgressRing
-              value={summary.percentToGoal ?? 0}
-              size={92}
-              strokeWidth={9}
-              label={
-                summary.percentToGoal !== null
-                  ? `${Math.round(summary.percentToGoal)}% of the way from your starting weight to your goal`
-                  : 'Not enough data for goal progress yet'
-              }
-            >
-              <span className="tabular font-display text-xl font-semibold leading-none">
-                {summary.percentToGoal !== null ? `${Math.round(summary.percentToGoal)}%` : '—'}
-              </span>
-            </ProgressRing>
-          </CardContent>
-        </div>
-
-        <CardContent className="flex gap-2 border-t border-border/60 p-4">
-          <LogWeightDialog
-            today={today}
-            lastWeightKg={summary.current}
-            trigger={
-              <Button variant="brand" className="flex-1">
-                Log weight
-              </Button>
-            }
-          />
-          <Button variant="outline" asChild className="flex-1">
-            <Link href="/progress">
-              Progress
-              <ArrowRight className="size-4" />
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* ── suggestions ─────────────────────────────────────────────────── */}
+      {/* ── priorities ──────────────────────────────────────────────────── */}
       {cards.length > 0 ? (
-        <section aria-label="Suggestions" className="space-y-2">
+        <section aria-labelledby="priorities-heading" className="space-y-2.5 pt-3">
+          <div className="flex items-baseline justify-between px-1">
+            <h2 id="priorities-heading" className="text-[16.5px] font-semibold tracking-tight">
+              Today&rsquo;s priorities
+            </h2>
+            <span className="text-xs text-subtle">
+              {cards.length} for today
+            </span>
+          </div>
           {cards.map((card) => (
             <SuggestionCard key={card.key} suggestion={card} today={today} />
           ))}
         </section>
       ) : null}
+
+      <WaterCard
+        date={today}
+        glasses={metric?.water_glasses ?? 0}
+        goal={WATER_GOAL_GLASSES}
+      />
 
       {/* ── day context ─────────────────────────────────────────────────── */}
       <DayContextCard
@@ -257,93 +258,89 @@ export default async function TodayPage() {
       />
 
       {/* ── today's habits ──────────────────────────────────────────────── */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="mb-2 flex items-center justify-between gap-3 px-1">
-            <div>
-              <h2 className="text-sm font-semibold tracking-tight">Today</h2>
-              <p className="text-xs text-muted-foreground">
-                {dayProgress.required === 0
-                  ? 'No habits set up yet'
-                  : `${dayProgress.completed} of ${dayProgress.required} done`}
-                {streak > 1 ? ` · ${streak} day streak` : ''}
-              </p>
-            </div>
-            {dayProgress.required > 0 ? (
-              <span className="tabular text-sm font-medium text-muted-foreground">
-                {dayProgress.percent}%
+      <section aria-labelledby="habits-heading" className="surface-card p-5">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h2 id="habits-heading" className="text-[16.5px] font-semibold tracking-tight">
+              Today&rsquo;s habits
+            </h2>
+            <p className="text-[13px] text-muted-foreground">
+              {dayProgress.required === 0
+                ? 'No habits set up yet'
+                : `${dayProgress.completed} of ${dayProgress.required} complete · small steps add up`}
+            </p>
+          </div>
+          {dayProgress.required > 0 ? (
+            <span className="tabular text-sm font-semibold text-muted-foreground">
+              {dayProgress.percent}%
+            </span>
+          ) : null}
+        </div>
+
+        {dayProgress.required > 0 ? (
+          <Progress
+            value={dayProgress.percent}
+            className="mb-4 h-1.5"
+            aria-label="Today's habit completion"
+          />
+        ) : null}
+
+        <HabitChecklist
+          habits={habitsWithStatus}
+          date={today}
+          grouped
+          detailByHabitId={habitDetails}
+        />
+
+        {dayProgress.completed === 0 ? (
+          <p className="px-3 pt-3 text-xs text-muted-foreground">{TONE.emptyDay}</p>
+        ) : null}
+      </section>
+
+      {/* ── weight ──────────────────────────────────────────────────────── */}
+      <section aria-labelledby="weight-heading" className="surface-card overflow-hidden">
+        <div className="bg-gradient-veil p-5">
+          <p className="eyebrow" id="weight-heading">
+            Weight
+          </p>
+          <div className="mt-2 flex items-end gap-2">
+            <span className="tabular font-display text-display-lg leading-none">
+              {formatWeightNumber(summary.current)}
+            </span>
+            <span className="pb-1 text-base text-subtle">kg</span>
+          </div>
+          <p className="mt-2.5 text-sm text-muted-foreground">
+            {summary.goal ? `Goal ${summary.goal} kg` : 'No goal set yet'}
+            {summary.weeklyChangeKg !== null ? (
+              <span className="tabular ml-2 font-semibold text-sage-ink">
+                {formatDelta(summary.weeklyChangeKg)} this week
               </span>
             ) : null}
-          </div>
+          </p>
+        </div>
 
-          {dayProgress.required > 0 ? (
-            <Progress
-              value={dayProgress.percent}
-              className="mb-3 h-1.5"
-              aria-label="Today's habit completion"
-            />
-          ) : null}
-
-          <HabitChecklist
-            habits={habitsWithStatus}
-            date={today}
-            grouped
-            detailByHabitId={habitDetails}
+        <div className="flex gap-2 border-t border-border-soft p-4">
+          <LogWeightDialog
+            today={today}
+            lastWeightKg={summary.current}
+            trigger={
+              <button
+                type="button"
+                className="flex-1 rounded-2xl bg-primary px-5 py-3.5 text-[14.5px] font-semibold text-primary-foreground transition-transform active:scale-[0.985] motion-reduce:active:scale-100"
+              >
+                Log today&rsquo;s weight
+              </button>
+            }
           />
-
-          {dayProgress.completed === 0 ? (
-            <p className="px-3 pt-3 text-xs text-muted-foreground">{TONE.emptyDay}</p>
-          ) : null}
-        </CardContent>
-      </Card>
-
-      {/* ── workout + skincare summary ──────────────────────────────────── */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Card>
-          <CardContent className="space-y-3 p-4">
-            <div className="flex items-center gap-2">
-              <Dumbbell className="size-4 text-domain-workout" aria-hidden="true" />
-              <h2 className="text-sm font-semibold">Workout</h2>
-            </div>
-            <p className="tabular font-display text-2xl leading-none">
-              {completedThisWeek} <span className="text-base text-muted-foreground">/ {workoutTarget}</span>
-            </p>
-            <p className="text-xs text-muted-foreground">
-              this week · week of {weekStart.slice(8)}/{weekStart.slice(5, 7)}
-            </p>
-            <Progress
-              value={workoutTarget === 0 ? 100 : Math.min(100, (completedThisWeek / workoutTarget) * 100)}
-              className="h-1.5"
-              aria-label={`${completedThisWeek} of ${workoutTarget} workouts this week`}
-            />
-            <Button variant="outline" size="sm" asChild className="w-full">
-              <Link href="/workout">Open workouts</Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="space-y-3 p-4">
-            <div className="flex items-center gap-2">
-              <Sparkles className="size-4 text-domain-skincare" aria-hidden="true" />
-              <h2 className="text-sm font-semibold">Skincare</h2>
-            </div>
-            <dl className="space-y-1.5 text-sm">
-              <div className="flex items-center justify-between">
-                <dt className="text-muted-foreground">Morning</dt>
-                <dd className="font-medium">{skincareAmDone ? 'Done ✓' : 'Open'}</dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-muted-foreground">Evening</dt>
-                <dd className="font-medium">{skincarePmDone ? 'Done ✓' : 'Open'}</dd>
-              </div>
-            </dl>
-            <Button variant="outline" size="sm" asChild className="w-full">
-              <Link href="/skincare">Open routines</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+          <Link
+            href="/weight"
+            className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-border bg-card px-5 py-3.5 text-[14.5px] font-semibold transition-colors hover:bg-muted"
+          >
+            Journey
+            <ArrowRight className="size-4" aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

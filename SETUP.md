@@ -151,13 +151,17 @@ your `.gitignore` before going further.
 
 ## 5. Create the database
 
-Three migration files, **run in order**. Order matters: the second depends on tables from
-the first, the third on both.
+Seven migration files, **run in order**. Order matters: each one builds on the tables,
+enums and functions the ones before it created.
 
 ```
-supabase/migrations/20260101000000_init_schema.sql     tables, enums, triggers
-supabase/migrations/20260101000100_rls.sql             row level security + storage bucket
-supabase/migrations/20260101000200_seed_defaults.sql   per-user defaults + signup trigger
+supabase/migrations/20260101000000_init_schema.sql              tables, enums, triggers
+supabase/migrations/20260101000100_rls.sql                      row level security + storage bucket
+supabase/migrations/20260101000200_seed_defaults.sql            per-user defaults + signup trigger
+supabase/migrations/20260824000000_neutral_defaults.sql         neutral seeded content
+supabase/migrations/20260824000100_calendar_token_encryption.sql  encrypted OAuth token columns
+supabase/migrations/20260824010000_google_only_calendar_provider.sql  Google-only calendar provider enum
+supabase/migrations/20260824010100_daily_metrics.sql            hydration, sleep and mood
 ```
 
 Pick **one** of the two paths below.
@@ -172,7 +176,7 @@ Pick **one** of the two paths below.
    (`Ctrl+A`), copy, and paste into the SQL editor.
 4. Click **Run** (or `Ctrl+Enter`).
 5. Expect **Success. No rows returned.**
-6. Repeat for `20260101000100_rls.sql`, then `20260101000200_seed_defaults.sql`.
+6. Repeat for each remaining file, in the order listed above.
 
 Run each file **completely and once**. These migrations are not written to be re-run —
 `create table` and `create policy` both fail on a second pass. If you need to start over,
@@ -195,7 +199,7 @@ Your `YOUR-REF` is the subdomain in your Project URL — for
 
 `link` will prompt for the database password you saved in step 3.
 
-`db push` applies all three migrations in filename order automatically.
+`db push` applies every migration in filename order automatically.
 
 ---
 
@@ -463,31 +467,6 @@ Register the redirect URI `http://localhost:3000/api/calendar/google/callback` w
 `GOOGLE_REDIRECT_URI` still works if you already have it set.
 
 **Restart the dev server** — `NEXT_PUBLIC_*` and server env vars are read at boot.
-
-### 11b-ii. Microsoft Outlook (optional)
-
-Register an app at **Microsoft Entra ID → App registrations**, add the redirect URI
-`http://localhost:3000/api/calendar/outlook/callback` (Web platform), and grant the
-delegated permissions `User.Read` and `Calendars.Read`.
-
-```ini
-MICROSOFT_CLIENT_ID=your-application-id
-MICROSOFT_CLIENT_SECRET=your-client-secret
-MICROSOFT_TENANT=common
-```
-
-`common` allows both personal Microsoft accounts and work/school accounts; a tenant GUID
-pins it to one organisation.
-
-Microsoft has no free/busy-only scope, so `Calendars.Read` is the narrowest thing that
-reaches availability at all. The app compensates at the endpoint: it calls
-`/me/calendar/getSchedule`, which returns availability blocks and nothing else, and where a
-tenant disables that it falls back to `/me/calendarView` asking for only `start`, `end` and
-`showAs` — and keeps two of the three. No subject line is ever requested or stored.
-
-Microsoft's v2.0 endpoint offers a confidential client no way to revoke its own delegated
-grant, so **Disconnect** deletes every local token and cached block and points you at
-[myapps.microsoft.com](https://myapps.microsoft.com) to clear the consent itself.
 
 ### 11c. Connect
 

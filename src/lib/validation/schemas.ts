@@ -106,6 +106,44 @@ export const weightEntrySchema = z.object({
 });
 export type WeightEntryInput = z.infer<typeof weightEntrySchema>;
 
+// ── daily metrics ─────────────────────────────────────────────────
+
+export const DAY_MOODS = ['calm', 'happy', 'motivated', 'tired', 'stressed', 'low'] as const;
+
+/**
+ * One glass, up or down.
+ *
+ * A delta rather than a total, so the server is the only thing that decides
+ * what the count becomes.
+ */
+export const waterAdjustSchema = z.object({
+  metric_date: DATE_KEY,
+  delta: z
+    .number()
+    .int('Water moves a glass at a time')
+    .min(-1, 'Water moves a glass at a time')
+    .max(1, 'Water moves a glass at a time'),
+});
+export type WaterAdjustInput = z.infer<typeof waterAdjustSchema>;
+
+export const dailyMetricSchema = z.object({
+  metric_date: DATE_KEY,
+  // Nullable throughout: an unlogged night is not a night of zero sleep, and
+  // the UI shows it as a dash rather than as a number nobody entered.
+  sleep_hours: z
+    .number({ invalid_type_error: 'Enter hours of sleep' })
+    .min(0, 'That looks too low')
+    .max(24, 'That looks too high')
+    .nullish()
+    .transform((value) => value ?? null),
+  mood: z
+    .enum(DAY_MOODS)
+    .nullish()
+    .transform((value) => value ?? null),
+  note: optionalText(280, 'Keep notes under 280 characters'),
+});
+export type DailyMetricInput = z.infer<typeof dailyMetricSchema>;
+
 // ── goals ────────────────────────────────────────────────────────────────────
 
 export const goalSchema = z.object({

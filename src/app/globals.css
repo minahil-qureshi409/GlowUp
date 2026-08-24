@@ -4,143 +4,234 @@
 
 /*
  * GlowUp tokens.
+ *
+ * The palette is the warm-cream / rose one from the GlowUp design: a paper-ish
+ * background, near-black warm ink, and five soft accents that carry the five
+ * pillars (nutrition, movement, skincare, sleep, hydration).
+ *
  * Light is the base; `.dark` redefines only what changes. Nothing gets its sole
  * definition inside `.dark`, so a missing class can never leave a colour unset.
+ *
+ * Two variants exist for every accent, and the difference matters:
+ *
+ *   --sage       FILL. Rings, bars, dots, tint chips. Tuned to clear 3:1
+ *                against the tinted track it usually sits on, so the filled
+ *                part of a progress bar is actually distinguishable.
+ *   --sage-ink   TEXT. The same hue darkened to clear 4.5:1. Used wherever an
+ *                accent colours words rather than shapes.
+ *
+ * The design uses one value for both. At 14px semibold on cream that lands
+ * around 2.5:1, which is not readable, so the text variants exist. In dark mode
+ * the design's own values already clear 4.5:1 and fill equals ink.
  */
 @layer base {
   :root {
     color-scheme: light;
 
-    --background: 30 38% 98%;
-    --foreground: 300 12% 16%;
+    --background: 26 47% 97%;
+    --background-alt: 25 40% 94%;
+    --foreground: 16 15% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 300 12% 16%;
+    --card-foreground: 16 15% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 300 12% 16%;
+    --popover-foreground: 16 15% 15%;
 
-    --primary: 325 39% 40%;
-    --primary-foreground: 30 40% 99%;
-    --primary-soft: 325 45% 95%;
-
-    --secondary: 300 22% 96%;
-    --secondary-foreground: 300 14% 26%;
-
-    --muted: 30 20% 95%;
     /*
-     * 43% rather than 45%: at 45% this cleared 4.5:1 against the page and the
-     * card but only reached 4.45:1 against `--muted` itself, and the tinted
-     * `bg-muted/60` panels are exactly where the smallest text lives. 43%
-     * clears AA on all three surfaces (4.78 / 5.33 / 5.11).
+     * `--primary` is the deep rose the design puts behind white button text
+     * (4.77:1). `--primary-fill` is the lighter rose used for ring strokes and
+     * bar fills, nudged from 63% to 60% lightness so it clears 3:1 on a track.
      */
-    --muted-foreground: 300 6% 43%;
+    --primary: 343 23% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-fill: 346 31% 60%;
+    --primary-soft: 349 44% 92%;
 
-    --accent: 24 52% 93%;
-    --accent-foreground: 20 30% 26%;
+    --secondary: 24 38% 95%;
+    --secondary-foreground: 21 10% 39%;
 
-    --destructive: 358 62% 46%;
+    /* The tinted panel colour, and the track behind every bar. */
+    --muted: 24 38% 95%;
+    --muted-foreground: 21 10% 39%;
+
+    /* The faintest tint, for inset panels and dashed empty states. */
+    --accent: 23 50% 97%;
+    --accent-foreground: 21 10% 39%;
+
+    /*
+     * The design's third ink, used for eyebrow labels and units. Its own value
+     * reads 2.76:1 on the page, so it is darkened to 44% lightness: 4.5:1
+     * against both the page and the tinted panels where it mostly lives.
+     */
+    --subtle-foreground: 22 11% 44%;
+
+    --destructive: 9 46% 48%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 160 52% 30%;
+    --success: 108 15% 40%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 34 78% 38%;
+    --warning: 38 48% 37%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 315 14% 90%;
-    --input: 315 14% 88%;
-    --ring: 325 39% 45%;
+    --border: 26 13% 90%;
+    --border-soft: 22 21% 93%;
+    --input: 22 11% 85%;
+    --ring: 343 23% 50%;
 
-    --shadow-color: 315 30% 30%;
+    --shadow-color: 16 15% 15%;
+    /*
+     * Shadow opacity, as tokens rather than baked into the utility. Dark mode
+     * needs a far heavier shadow to read at all against a near-black page, and
+     * one `--shadow-color` cannot carry two alphas.
+     */
+    --shadow-a1: 0.04;
+    --shadow-a2: 0.16;
+    --shadow-a3: 0.05;
+    --shadow-a4: 0.3;
 
-    --grad-from: 325 36% 46%;
-    --grad-to: 20 55% 72%;
-    --grad-veil: 325 55% 88%;
+    --grad-from: 343 23% 50%;
+    --grad-to: 346 31% 63%;
+    --grad-veil: 349 44% 92%;
 
-    --domain-nutrition: 24 62% 42%;
-    --domain-workout: 325 39% 40%;
-    --domain-skincare: 265 34% 48%;
-    --domain-weight: 168 62% 26%;
+    /* pillar accents */
+    --sage: 108 15% 51%;
+    --sage-ink: 108 15% 40%;
+    --sage-soft: 108 23% 91%;
 
-    --radius: 0.875rem;
+    --lav: 244 36% 65%;
+    --lav-ink: 244 36% 56%;
+    --lav-soft: 244 45% 94%;
+
+    --mauve: 271 16% 59%;
+    --mauve-ink: 271 16% 48%;
+    --mauve-soft: 271 30% 94%;
+
+    --amber: 38 48% 46%;
+    --amber-ink: 38 48% 37%;
+    --amber-soft: 38 52% 92%;
+
+    --coral: 9 46% 60%;
+    --coral-ink: 9 46% 48%;
+
+    --gold: 41 44% 46%;
+
+    /* Diagonal hatch used for image placeholders and photo slots. */
+    --stripe: 24 21% 91%;
+
+    --radius: 1rem;
 
     /*
-     * Chart palette — literal hex, validated per mode with the data-viz
+     * Chart palette. Literal hex, validated per mode with the data-viz
      * validator (lightness band, chroma floor, protan/deutan separation,
      * normal-vision floor, contrast vs the card surface). Slots are assigned in
      * fixed order and never cycled; do not tint, reorder, or extend these
-     * without re-running the validator.
+     * without re-running the validator. Repainting the app did not change the
+     * data colours: they were validated as a set, and a set is not something a
+     * palette refresh gets to pick apart.
      */
-    --chart-1: #8e3f6e; /* plum   — primary series (weight, main metric) */
-    --chart-2: #c4761d; /* amber  — nutrition */
-    --chart-3: #109b7e; /* teal   — trend / secondary */
-    --chart-4: #4b4bc4; /* indigo — workout volume */
-    --chart-5: #ce5e85; /* rose   — skincare */
+    --chart-1: #8e3f6e; /* plum   - primary series (weight, main metric) */
+    --chart-2: #c4761d; /* amber  - nutrition */
+    --chart-3: #109b7e; /* teal   - trend / secondary */
+    --chart-4: #4b4bc4; /* indigo - workout volume */
+    --chart-5: #ce5e85; /* rose   - skincare */
 
-    --chart-grid: 315 14% 91%;
+    --chart-grid: 26 13% 91%;
     /* Axis labels are body-size text, so they need 4.5:1, not 3:1. */
-    --chart-axis: 300 6% 45%;
+    --chart-axis: 21 10% 42%;
     --chart-surface: 0 0% 100%;
 
-    /* Sequential ramp (single hue, light -> dark) for magnitude encodings. */
-    --seq-100: #f2dbe8;
-    --seq-200: #e2b6d0;
-    --seq-300: #cd8cb2;
-    --seq-400: #b46693;
-    --seq-500: #9a4a79;
-    --seq-600: #7d3760;
-    --seq-700: #5e2747;
+    /* Sequential ramp (single hue, light to dark) for magnitude encodings. */
+    --seq-100: #f7e6e9;
+    --seq-200: #eec9d0;
+    --seq-300: #dda6b1;
+    --seq-400: #c78393;
+    --seq-500: #ab6376;
+    --seq-600: #8b4d5e;
+    --seq-700: #6a3948;
   }
 
   .dark {
     color-scheme: dark;
 
-    --background: 295 16% 8%;
-    --foreground: 30 22% 94%;
+    --background: 15 11% 7%;
+    --background-alt: 12 11% 9%;
+    --foreground: 21 37% 93%;
 
-    --card: 291 12% 11%;
-    --card-foreground: 30 22% 94%;
+    --card: 20 11% 11%;
+    --card-foreground: 21 37% 93%;
 
-    --popover: 291 14% 13%;
-    --popover-foreground: 30 22% 94%;
+    --popover: 20 10% 12%;
+    --popover-foreground: 21 37% 93%;
 
-    --primary: 328 46% 72%;
-    --primary-foreground: 300 30% 12%;
-    --primary-soft: 322 22% 20%;
+    /*
+     * Inverted on purpose. On a near-black page the readable rose is the light
+     * one, so `--primary` takes the design's light value and its foreground
+     * goes dark: the same button, still 9:1, without a wall of white on pink.
+     */
+    --primary: 347 42% 73%;
+    --primary-foreground: 20 20% 10%;
+    --primary-fill: 347 42% 73%;
+    --primary-soft: 345 16% 20%;
 
-    --secondary: 295 10% 17%;
-    --secondary-foreground: 30 18% 90%;
+    --secondary: 17 10% 14%;
+    --secondary-foreground: 20 13% 67%;
 
-    --muted: 295 10% 16%;
-    --muted-foreground: 300 6% 66%;
+    --muted: 17 10% 14%;
+    --muted-foreground: 20 13% 67%;
 
-    --accent: 20 18% 20%;
-    --accent-foreground: 24 46% 88%;
+    --accent: 20 10% 12%;
+    --accent-foreground: 20 13% 67%;
 
-    --destructive: 358 62% 62%;
-    --destructive-foreground: 300 30% 10%;
+    --subtle-foreground: 16 10% 55%;
 
-    --success: 160 44% 56%;
-    --success-foreground: 300 30% 10%;
+    --destructive: 9 57% 70%;
+    --destructive-foreground: 20 20% 10%;
 
-    --warning: 36 72% 60%;
-    --warning-foreground: 300 30% 10%;
+    --success: 108 20% 67%;
+    --success-foreground: 20 20% 10%;
 
-    --border: 295 9% 20%;
-    --input: 295 9% 24%;
-    --ring: 328 46% 66%;
+    --warning: 39 57% 65%;
+    --warning-foreground: 20 20% 10%;
 
-    --shadow-color: 295 40% 3%;
+    --border: 24 6% 15%;
+    --border-soft: 15 6% 12%;
+    --input: 20 6% 21%;
+    --ring: 347 42% 73%;
 
-    --grad-from: 325 34% 42%;
-    --grad-to: 20 34% 46%;
-    --grad-veil: 325 40% 30%;
+    --shadow-color: 0 0% 0%;
+    --shadow-a1: 0.4;
+    --shadow-a2: 0.6;
+    --shadow-a3: 0.5;
+    --shadow-a4: 0.75;
 
-    --domain-nutrition: 28 62% 66%;
-    --domain-workout: 328 46% 72%;
-    --domain-skincare: 265 48% 74%;
-    --domain-weight: 165 44% 56%;
+    --grad-from: 345 26% 34%;
+    --grad-to: 20 22% 30%;
+    --grad-veil: 345 16% 22%;
+
+    --sage: 108 20% 67%;
+    --sage-ink: 108 20% 67%;
+    --sage-soft: 115 14% 16%;
+
+    --lav: 244 45% 81%;
+    --lav-ink: 244 45% 81%;
+    --lav-soft: 243 22% 19%;
+
+    --mauve: 272 20% 71%;
+    --mauve-ink: 272 20% 71%;
+    --mauve-soft: 272 16% 20%;
+
+    --amber: 39 57% 65%;
+    --amber-ink: 39 57% 65%;
+    --amber-soft: 36 18% 18%;
+
+    --coral: 9 57% 70%;
+    --coral-ink: 9 57% 70%;
+
+    --gold: 41 54% 64%;
+
+    --stripe: 17 7% 19%;
 
     --chart-1: #ac5c87;
     --chart-2: #c4801f;
@@ -148,9 +239,9 @@
     --chart-4: #7a76da;
     --chart-5: #d2698a;
 
-    --chart-grid: 295 9% 21%;
-    --chart-axis: 300 6% 62%;
-    --chart-surface: 291 12% 11%;
+    --chart-grid: 24 6% 18%;
+    --chart-axis: 20 13% 64%;
+    --chart-surface: 20 11% 11%;
 
     --seq-100: #3a2233;
     --seq-200: #4f2c45;
@@ -171,10 +262,6 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings:
-      'cv02' 1,
-      'cv03' 1,
-      'cv04' 1;
     text-rendering: optimizeLegibility;
   }
 
@@ -197,12 +284,46 @@
 }
 
 @layer components {
+  /*
+   * The card. Rounder and softer than a default card: in this design the
+   * corner radius is doing as much work as the colour.
+   */
   .surface-card {
-    @apply rounded-2xl border border-border/70 bg-card text-card-foreground shadow-soft;
+    @apply rounded-3xl border border-border/70 bg-card text-card-foreground shadow-soft;
+  }
+
+  /* An inset panel: no shadow, one step down in tint. Used inside cards. */
+  .surface-inset {
+    @apply rounded-2xl border border-border-soft bg-accent;
+  }
+
+  /*
+   * The eyebrow. Small, wide-tracked, uppercase: the design's recurring label
+   * above a heading or beside a number.
+   */
+  .eyebrow {
+    @apply text-[11px] uppercase tracking-[0.18em] text-subtle;
+  }
+
+  /*
+   * Image placeholder. The diagonal hatch the design uses wherever a real
+   * photo will eventually go.
+   */
+  .hatch {
+    background-color: hsl(var(--muted));
+    background-image: repeating-linear-gradient(
+      48deg,
+      hsl(var(--stripe)) 0 2px,
+      transparent 2px 11px
+    );
   }
 
   .text-balance {
     text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
   }
 
   /* Safe-area padding so the bottom nav clears the iOS home indicator. */
@@ -223,11 +344,11 @@
    * documents have to stay legible and are not a place for personality.
    */
   .prose-glow h1 {
-    @apply font-display text-2xl font-semibold tracking-tight;
+    @apply font-display text-2xl tracking-tight;
   }
 
   .prose-glow h2 {
-    @apply pt-2 font-display text-lg font-semibold tracking-tight;
+    @apply pt-2 font-display text-lg tracking-tight;
   }
 
   .prose-glow p,

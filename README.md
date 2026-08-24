@@ -131,7 +131,7 @@ Office-gym suggestions treat the women's-only window as a hard boundary, minus a
 
 ## Database schema
 
-29 tables, all owner-scoped. Full DDL in `supabase/migrations/`.
+30 tables, all owner-scoped. Full DDL in `supabase/migrations/`.
 
 ### Profile & configuration
 | Table | Notes |
@@ -153,6 +153,11 @@ Office-gym suggestions treat the women's-only window as a hard boundary, minus a
 | `habits` | Category, frequency, `preferred_part` (a hint), optional window, `is_optional`, optional `recipe_id` |
 | `habit_completions` | `completed` / `skipped` / `modified`. **No "missed" state exists** |
 | `shake_recipes`, `shake_ingredients` | Macros stored **per unit**, so editing a quantity recomputes cleanly |
+
+### Daily metrics
+| Table | Notes |
+|---|---|
+| `daily_metrics` | One per user per day. Water glasses, sleep hours, mood. Sleep is nullable and water is not — an unlogged night is not a night of zero sleep, but an unlogged day of water is zero glasses |
 
 ### Workouts
 | Table | Notes |
@@ -376,8 +381,12 @@ Stated plainly, because these are real:
    cache refreshes when you connect or press Refresh. Google's push notification channels
    would fix this.
 
-3. **Apple and Outlook are interface-only.** `CalendarProvider` is implemented for Google
-   alone. The registry lists the other two as unavailable.
+3. **One calendar provider, free/busy only.** `CalendarProvider` is implemented for Google
+   and nothing else. Apple and Outlook were both removed: Apple had never been more than an
+   unused enum value and shipping it needs a paid developer account, and Outlook needed a
+   per-deployment Entra ID registration plus a tenant decision while offering no
+   free/busy-only scope — `Calendars.Read` is wider than this app is willing to ask for.
+   The registry is still a registry, so adding one back is a module and a line.
 
 4. **Nutrition values are approximations** by design, from per-ingredient reference
    figures. Every surface that shows a calorie or protein number says so. Brands vary
@@ -416,13 +425,12 @@ Roughly in order of value:
    smoothing, streak edge cases and gym-window boundaries.
 3. **Google Calendar push notifications** so busy blocks stay fresh without a manual
    refresh.
-4. **Outlook (Graph)** provider behind the existing interface.
-5. **Client-side image compression** before upload.
-6. **Template editing in the UI** — templates are seeded and usable but not yet editable
+4. **Client-side image compression** before upload.
+5. **Template editing in the UI** — templates are seeded and usable but not yet editable
    (exercises can be added to any session ad hoc).
-7. **Data export** — a JSON or CSV dump of everything, which for a personal health tracker
+6. **Data export** — a JSON or CSV dump of everything, which for a personal health tracker
    is close to a moral obligation.
-8. **Offline support** via a service worker, so habits can be ticked on a commute with no
+7. **Offline support** via a service worker, so habits can be ticked on a commute with no
    signal and synced later.
 9. **Body measurements** (arms, waist, hips) as a first-class tracked series alongside
    weight — a natural fit for the stated physique goals, and more informative than weight

@@ -12,6 +12,8 @@ type GreetingHeaderProps = {
   timeFormat: Enums<'time_format'>;
   /** Server-computed greeting, shown until the client clock resolves. */
   fallbackGreeting: string;
+  /** One line under the greeting — how the day is actually going. */
+  subGreeting: string;
 };
 
 /**
@@ -26,6 +28,7 @@ export function GreetingHeader({
   timezone,
   timeFormat,
   fallbackGreeting,
+  subGreeting,
 }: GreetingHeaderProps) {
   const now = useNow();
 
@@ -33,23 +36,26 @@ export function GreetingHeader({
   const firstName = displayName?.trim().split(/\s+/)[0];
 
   return (
-    <header className="space-y-0.5 px-1">
-      <h1 className="font-display text-2xl font-semibold tracking-tight">
-        {greeting}
-        {firstName ? `, ${firstName}` : ''} <span aria-hidden="true">✨</span>
-      </h1>
-      <p className="text-sm text-muted-foreground">
+    <header className="px-1">
+      <p className="eyebrow">
         {now ? (
           <time dateTime={now.toISOString()}>
             {formatInTimeZone(now, timezone, 'EEEE d MMMM')}
-            <span className="tabular ml-2">
+            <span className="tabular ml-2 normal-case tracking-normal">
               {formatInTimeZone(now, timezone, timeFormat === '24h' ? 'HH:mm' : 'h:mm a')}
             </span>
           </time>
         ) : (
-          <span className="inline-block h-4 w-40 animate-pulse rounded bg-muted/70" />
+          <span className="inline-block h-3 w-40 animate-pulse rounded bg-muted" />
         )}
       </p>
+
+      <h1 className="mt-2 font-display text-display-md">
+        {greeting}
+        {firstName ? `, ${firstName}` : ''} <span aria-hidden="true">✨</span>
+      </h1>
+
+      <p className="mt-1.5 text-[14.5px] text-muted-foreground">{subGreeting}</p>
     </header>
   );
 }

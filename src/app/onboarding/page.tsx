@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
+import { AmbientBackground } from '@/components/layout/ambient-background';
 import { OnboardingFlow } from '@/components/onboarding/onboarding-flow';
 import { requireUser } from '@/server/auth';
 import { getUserContext } from '@/services/profile';
@@ -24,9 +25,9 @@ export default async function OnboardingPage() {
   ]);
 
   return (
-    <div className="relative min-h-dvh">
-      <div className="pointer-events-none absolute inset-0 bg-gradient-veil" aria-hidden="true" />
-      <div className="relative">
+    <div className="relative min-h-dvh overflow-hidden">
+      <AmbientBackground />
+      <div className="relative z-10">
         <OnboardingFlow
           displayName={context.profile.display_name}
           heightCm={context.profile.height_cm}

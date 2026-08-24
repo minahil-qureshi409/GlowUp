@@ -223,6 +223,11 @@ export function OnboardingFlow({
     setStep((s) => Math.min(STEPS.length - 1, s + 1));
   }
 
+  function goBack() {
+    setFormError(null);
+    setStep((s) => Math.max(0, s - 1));
+  }
+
   /** Walks every step, stopping at the first that will not validate. */
   function firstInvalidStep(): number | null {
     for (let index = 0; index < STEPS.length; index += 1) {
@@ -318,18 +323,36 @@ export function OnboardingFlow({
 
   return (
     <div className="mx-auto w-full max-w-md space-y-6 px-5 py-10">
-      <div className="space-y-3">
-        <p className="text-center font-display text-2xl font-semibold tracking-tight">
-          GlowUp <span aria-hidden="true">✨</span>
-        </p>
+      {/*
+        Back, progress and position on one row. The old stacked version pushed
+        the actual question below the fold on a small phone, which is a poor
+        trade for a wordmark you have already seen.
+      */}
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={goBack}
+          disabled={step === 0 || pending}
+          aria-label="Back a step"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
+        >
+          <ArrowLeft className="size-4" aria-hidden="true" />
+        </button>
+
         <Progress
           value={((step + 1) / STEPS.length) * 100}
+          className="h-1"
           aria-label={`Step ${step + 1} of ${STEPS.length}`}
         />
-        <p className="text-center text-xs text-muted-foreground">
-          Step {step + 1} of {STEPS.length} · {STEPS[step]}
-        </p>
+
+        <span className="tabular shrink-0 text-xs text-subtle">
+          {step + 1}/{STEPS.length}
+        </span>
       </div>
+
+      <p className="sr-only">
+        Step {step + 1} of {STEPS.length}: {STEPS[step]}
+      </p>
 
       <div className="surface-card space-y-5 p-6">
         {step === 0 ? (
@@ -645,23 +668,9 @@ export function OnboardingFlow({
         ) : null}
 
         <div className="flex gap-2 pt-1">
-          {step > 0 ? (
-            <Button
-              variant="outline"
-              onClick={() => {
-                setFormError(null);
-                setStep((s) => s - 1);
-              }}
-              disabled={pending}
-            >
-              <ArrowLeft className="size-4" aria-hidden="true" />
-              Back
-            </Button>
-          ) : null}
-
           <Button
             variant="brand"
-            className="flex-1"
+            size="cta"
             disabled={pending}
             onClick={() => (isLast ? finish() : goNext())}
           >
@@ -719,9 +728,9 @@ function FieldError({
 
 function StepHeading({ title, body }: { title: string; body: string }) {
   return (
-    <div className="space-y-1">
-      <h1 className="font-display text-xl font-semibold tracking-tight">{title}</h1>
-      <p className="text-sm text-muted-foreground">{body}</p>
+    <div className="space-y-2">
+      <h1 className="text-pretty font-display text-display-sm">{title}</h1>
+      <p className="text-[14.5px] leading-relaxed text-muted-foreground">{body}</p>
     </div>
   );
 }

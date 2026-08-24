@@ -87,7 +87,7 @@ export default async function WeeklyReviewPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="font-display text-xl font-semibold tracking-tight">Weekly review</h1>
+          <h1 className="font-display text-xl tracking-tight">Weekly review</h1>
           <p className="text-xs text-muted-foreground">
             {formatDateKey(weekStart, 'd MMM')} – {formatDateKey(weekEnd, 'd MMM yyyy')}
           </p>

@@ -57,9 +57,10 @@ export default function PrivacyPolicyPage() {
 
       <h2>Calendar connections</h2>
       <p>
-        Connecting Google or Microsoft is optional and everything else works without it. When you
-        do connect one, GlowUp requests the narrowest availability permission each provider offers
-        and stores <strong>start and end times of busy blocks only</strong>.
+        Connecting Google Calendar is optional and everything else works without it. When you do
+        connect it, GlowUp requests <code>calendar.freebusy</code> — the narrowest availability
+        permission Google offers — and stores <strong>start and end times of busy blocks
+        only</strong>.
       </p>
       <ul>
         <li>Event titles, descriptions, guests, locations and organisers are never requested and never stored.</li>
@@ -84,8 +85,8 @@ export default function PrivacyPolicyPage() {
       <p>
         GlowUp uses <strong>Supabase</strong> (database, authentication and file storage) and a
         hosting provider to run the site. They process data on our instructions in order to provide
-        the service. If you connect a calendar, GlowUp exchanges requests with Google or Microsoft
-        for availability only.
+        the service. If you connect a calendar, GlowUp exchanges requests with Google for
+        availability only.
       </p>
 
       <h2>How long it is kept</h2>

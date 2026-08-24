@@ -21,7 +21,7 @@ export default function GlobalError({
 
   return (
     <div className="flex min-h-[60dvh] flex-col items-center justify-center gap-4 px-6 text-center">
-      <p className="font-display text-2xl font-semibold tracking-tight">That did not load</p>
+      <p className="font-display text-2xl tracking-tight">That did not load</p>
       <p className="max-w-sm text-sm text-muted-foreground">
         Something went wrong on our side. Nothing you logged has been lost.
       </p>

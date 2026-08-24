@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 
+import { AmbientBackground } from '@/components/layout/ambient-background';
 import { AppHeader } from '@/components/layout/app-header';
 import { BottomNav } from '@/components/layout/bottom-nav';
 import { Sidebar } from '@/components/layout/sidebar';
@@ -7,6 +8,9 @@ import { SiteFooter } from '@/components/layout/site-footer';
 import { requireUser } from '@/server/auth';
 import { getUserContext } from '@/services/profile';
 import { getWeightGoal } from '@/services/weight';
+import { getActiveHabits, getCompletionsInRange } from '@/services/habits';
+import { currentStreak, dailyPercentMap } from '@/lib/domain/habits';
+import { subDaysKey, todayIn } from '@/lib/date';
 import { formatWeight } from '@/lib/format';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -19,16 +23,34 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     redirect('/onboarding');
   }
 
-  const { goal } = await getWeightGoal(supabase, userId);
+  const today = todayIn(context.profile.timezone);
+  const streakFrom = subDaysKey(today, 120);
+
+  const [{ goal }, habits, completions] = await Promise.all([
+    getWeightGoal(supabase, userId),
+    getActiveHabits(supabase, userId),
+    getCompletionsInRange(supabase, userId, streakFrom, today),
+  ]);
+
   const goalSummary = goal?.target_value
     ? `Working toward ${formatWeight(goal.target_value)}. Progress follows your actual trend.`
     : null;
 
-  return (
-    <div className="flex min-h-dvh">
-      <Sidebar displayName={context.profile.display_name} goalSummary={goalSummary} />
+  // The streak is chrome — it shows in the sidebar on every screen — so it is
+  // computed once here rather than in each page that wants to mention it.
+  const streakDays = currentStreak(dailyPercentMap(habits, completions, streakFrom, today), today);
 
-      <div className="flex min-w-0 flex-1 flex-col">
+  return (
+    <div className="relative flex min-h-dvh">
+      <AmbientBackground />
+
+      <Sidebar
+        displayName={context.profile.display_name}
+        goalSummary={goalSummary}
+        streakDays={streakDays}
+      />
+
+      <div className="relative z-10 flex min-w-0 flex-1 flex-col">
         <AppHeader
           displayName={context.profile.display_name}
           email={email}
@@ -38,16 +60,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         />
 
         {/* Bottom padding clears the fixed mobile nav; it collapses on desktop. */}
-        <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-2 sm:px-6 lg:max-w-4xl lg:px-8">
+        <main className="mx-auto w-full max-w-2xl flex-1 px-4 pt-1 sm:px-6 lg:max-w-5xl lg:px-10">
           {children}
         </main>
 
         {/*
           The medical disclaimer used to live on the last step of onboarding and
-          nowhere else, so most people saw it once. Bottom padding clears the
-          fixed mobile nav; it collapses on desktop.
+          nowhere else, so most people saw it once.
         */}
-        <SiteFooter className="pb-28 lg:pb-4" />
+        <SiteFooter className="pb-28 lg:pb-6" />
       </div>
 
       <BottomNav />

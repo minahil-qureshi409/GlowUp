@@ -75,7 +75,7 @@ export default async function ExerciseDetailPage({
           </Link>
         </Button>
         <div>
-          <h1 className="font-display text-xl font-semibold tracking-tight">{exercise.name}</h1>
+          <h1 className="font-display text-xl tracking-tight">{exercise.name}</h1>
           <p className="text-xs text-muted-foreground">
             {MUSCLE_GROUP_LABELS[exercise.muscle_group]}
             {exercise.equipment ? ` · ${exercise.equipment}` : ''}

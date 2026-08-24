@@ -10,7 +10,7 @@ import { beginHandshake } from '@/lib/calendar/oauth-session';
  *
  * One route for all of them: the provider id is a path segment, validated
  * against the registry so an unknown value can never reach an implementation.
- * Adding Apple later needs no change here.
+ * Adding another provider needs no change here.
  */
 export async function GET(
   request: NextRequest,

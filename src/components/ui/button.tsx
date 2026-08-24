@@ -26,6 +26,12 @@ const buttonVariants = cva(
         lg: 'h-12 px-7 text-base',
         icon: 'size-11',
         'icon-sm': 'size-9',
+        /*
+         * The full-width commitment button at the bottom of a screen. A
+         * rounded rectangle rather than a pill: at full width a pill reads as
+         * a lozenge and stops looking pressable.
+         */
+        cta: 'h-14 w-full rounded-2xl px-5 text-[15.5px] font-semibold',
       },
     },
     defaultVariants: { variant: 'default', size: 'default' },

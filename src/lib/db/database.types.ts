@@ -63,9 +63,10 @@ export type SkincareProductCategory =
 export type SkinCondition = 'good' | 'clear' | 'dry' | 'oily' | 'irritated' | 'breakout' | 'other';
 export type PhotoCategory = 'full_body' | 'arms' | 'lower_body' | 'skin' | 'other';
 export type WeekFeeling = 'great' | 'good' | 'okay' | 'difficult';
-export type CalendarProvider = 'google' | 'apple' | 'outlook';
+export type CalendarProvider = 'google';
 export type CalendarStatus = 'connected' | 'expired' | 'revoked' | 'error';
 export type MilestoneKind = 'manual' | 'weight' | 'strength' | 'consistency' | 'skincare';
+export type DayMood = 'calm' | 'happy' | 'motivated' | 'tired' | 'stressed' | 'low';
 
 
 /*
@@ -118,6 +119,15 @@ type WeightEntriesInsert = Partial<Timestamps> & {
     entry_date: string;
     note?: string | null;
     source?: DataSource;
+  };
+type DailyMetricsInsert = Partial<Timestamps> & {
+    id?: string;
+    user_id: string;
+    metric_date: string;
+    water_glasses?: number;
+    sleep_hours?: number | null;
+    mood?: DayMood | null;
+    note?: string | null;
   };
 type GoalsInsert = Partial<Timestamps> & {
     id?: string;
@@ -452,6 +462,20 @@ export type Database = {
         };
         Insert: WeightEntriesInsert;
         Update: Partial<WeightEntriesInsert>;
+        Relationships: [];
+      };
+      daily_metrics: {
+        Row: Timestamps & {
+          id: string;
+          user_id: string;
+          metric_date: string;
+          water_glasses: number;
+          sleep_hours: number | null;
+          mood: DayMood | null;
+          note: string | null;
+        };
+        Insert: DailyMetricsInsert;
+        Update: Partial<DailyMetricsInsert>;
         Relationships: [];
       };
       goals: {
@@ -1011,6 +1035,7 @@ export type Database = {
       calendar_provider: CalendarProvider;
       calendar_status: CalendarStatus;
       milestone_kind: MilestoneKind;
+      day_mood: DayMood;
     };
     CompositeTypes: Record<string, never>;
   };

@@ -65,7 +65,7 @@ export default async function TimelinePage() {
           </Link>
         </Button>
         <div>
-          <h1 className="font-display text-xl font-semibold tracking-tight">Glow-Up timeline</h1>
+          <h1 className="font-display text-xl tracking-tight">Glow-Up timeline</h1>
           <p className="text-xs text-muted-foreground">
             Everything in one place, week by week.
           </p>

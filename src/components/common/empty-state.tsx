@@ -28,12 +28,12 @@ export function EmptyState({
     <div
       className={cn(
         'flex flex-col items-center justify-center gap-3 px-6 py-10 text-center',
-        variant === 'card' && 'rounded-2xl border border-dashed border-border bg-card/50',
+        variant === 'card' && 'rounded-3xl border border-dashed border-border bg-accent',
         className,
       )}
     >
       {Icon ? (
-        <span className="flex size-11 items-center justify-center rounded-full bg-primary-soft text-primary">
+        <span className="flex size-11 items-center justify-center rounded-2xl bg-primary-soft text-primary">
           <Icon className="size-5" aria-hidden="true" />
         </span>
       ) : null}

@@ -29,7 +29,7 @@ export default async function ProgressPhotosPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="font-display text-xl font-semibold tracking-tight">Progress photos</h1>
+          <h1 className="font-display text-xl tracking-tight">Progress photos</h1>
           <p className="text-xs text-muted-foreground">Optional, private, and entirely yours.</p>
         </div>
       </div>

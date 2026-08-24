@@ -95,7 +95,7 @@ export default async function WorkoutSessionPage({
           </Link>
         </Button>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-xl font-semibold tracking-tight">
+          <h1 className="truncate font-display text-xl tracking-tight">
             {workout.name}
           </h1>
           <p className="text-xs text-muted-foreground">

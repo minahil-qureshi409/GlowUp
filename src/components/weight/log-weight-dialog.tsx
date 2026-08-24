@@ -26,6 +26,8 @@ type LogWeightDialogProps = {
   today: string;
   lastWeightKg: number | null;
   trigger?: React.ReactNode;
+  /** Opens on mount — for `?log=1`, so a suggestion can land you mid-task. */
+  defaultOpen?: boolean;
 };
 
 /**
@@ -35,8 +37,13 @@ type LogWeightDialogProps = {
  * common case is two taps and no keyboard. The date defaults to today but stays
  * editable for a weigh-in someone forgot to log.
  */
-export function LogWeightDialog({ today, lastWeightKg, trigger }: LogWeightDialogProps) {
-  const [open, setOpen] = React.useState(false);
+export function LogWeightDialog({
+  today,
+  lastWeightKg,
+  trigger,
+  defaultOpen = false,
+}: LogWeightDialogProps) {
+  const [open, setOpen] = React.useState(defaultOpen);
   const [pending, startTransition] = React.useTransition();
   const [formError, setFormError] = React.useState<string | null>(null);
 
@@ -118,7 +125,7 @@ export function LogWeightDialog({ today, lastWeightKg, trigger }: LogWeightDialo
                   type="number"
                   step="0.1"
                   inputMode="decimal"
-                  className="h-16 w-32 border-0 bg-transparent text-center font-display text-4xl font-semibold shadow-none focus-visible:ring-0"
+                  className="h-16 w-32 border-0 bg-transparent text-center font-display text-4xl shadow-none focus-visible:ring-0"
                   aria-invalid={Boolean(form.formState.errors.weight_kg)}
                   {...form.register('weight_kg', { valueAsNumber: true })}
                 />

@@ -3,8 +3,8 @@
  *
  * Kept in one place because both documents repeat them and because they are the
  * two things that must be checked before a public launch — a privacy policy
- * with an unreachable contact address is worse than none, and Google's and
- * Microsoft's OAuth verification both read these pages.
+ * with an unreachable contact address is worse than none, and Google's OAuth
+ * verification reads these pages.
  *
  * `NEXT_PUBLIC_LEGAL_CONTACT_EMAIL` overrides the placeholder. Set it.
  */

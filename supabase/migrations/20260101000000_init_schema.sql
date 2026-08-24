@@ -49,7 +49,7 @@ create type public.skin_condition as enum (
 create type public.photo_category as enum ('full_body', 'arms', 'lower_body', 'skin', 'other');
 create type public.week_feeling as enum ('great', 'good', 'okay', 'difficult');
 
-create type public.calendar_provider as enum ('google', 'apple', 'outlook');
+create type public.calendar_provider as enum ('google');
 create type public.calendar_status as enum ('connected', 'expired', 'revoked', 'error');
 
 create type public.milestone_kind as enum ('manual', 'weight', 'strength', 'consistency', 'skincare');

@@ -3,10 +3,9 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button';
 import { dismissSuggestion } from '@/server/actions/habits';
 import { setHabitStatus } from '@/server/actions/habits';
 import { addPreferredWorkoutDay } from '@/server/actions/settings';
@@ -27,10 +26,16 @@ type SuggestionCardProps = {
  * Two rules make this a suggestion rather than an instruction: it always has a
  * dismiss control, and its action is optional. Dismissals are stored per day,
  * so saying "not today" does not delete the idea forever.
+ *
+ * Acting on one paints the card over with a confirmation before it goes. The
+ * card vanishing the instant you tap it reads as a misfire; a beat of "yes,
+ * that happened" is the difference between an app that responded and one that
+ * ate your tap.
  */
 export function SuggestionCard({ suggestion, today, className }: SuggestionCardProps) {
   const router = useRouter();
   const [dismissed, setDismissed] = React.useState(false);
+  const [done, setDone] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
 
   if (dismissed) return null;
@@ -48,6 +53,12 @@ export function SuggestionCard({ suggestion, today, className }: SuggestionCardP
     });
   }
 
+  /** Show the confirmation, then let the card go. */
+  function confirmThenClear(label: string) {
+    setDone(label);
+    setTimeout(() => setDismissed(true), 1100);
+  }
+
   function runAction() {
     const action = 'action' in suggestion ? suggestion.action : undefined;
     if (!action) return;
@@ -61,8 +72,7 @@ export function SuggestionCard({ suggestion, today, className }: SuggestionCardP
             status: 'completed',
           });
           if (result.ok) {
-            setDismissed(true);
-            toast.success('Logged.');
+            confirmThenClear('Logged');
           } else {
             toast.error(result.error);
           }
@@ -71,8 +81,7 @@ export function SuggestionCard({ suggestion, today, className }: SuggestionCardP
         case 'set-preferred-day': {
           const result = await addPreferredWorkoutDay(action.weekday);
           if (result.ok) {
-            setDismissed(true);
-            toast.success('Added to your preferred days.');
+            confirmThenClear('Added to your week');
           } else {
             toast.error(result.error);
           }
@@ -87,7 +96,7 @@ export function SuggestionCard({ suggestion, today, className }: SuggestionCardP
           break;
         }
         case 'log-weight': {
-          router.push('/progress?log=1');
+          router.push('/weight?log=1');
           break;
         }
         case 'navigate': {
@@ -104,13 +113,16 @@ export function SuggestionCard({ suggestion, today, className }: SuggestionCardP
   const actionLabel = 'actionLabel' in suggestion ? suggestion.actionLabel : undefined;
   const hasAction = Boolean(action && action.kind !== 'none' && actionLabel);
 
+  const pillClass =
+    'inline-flex shrink-0 items-center justify-center rounded-full border border-border bg-muted px-4 py-2.5 text-[12.5px] font-semibold text-foreground transition-colors hover:border-primary hover:bg-primary-soft disabled:opacity-50';
+
   return (
     <div
       className={cn(
-        'relative rounded-2xl border p-4 pr-10 transition-colors',
+        'relative overflow-hidden rounded-3xl border p-5 pr-11 shadow-soft transition-colors',
         tone === 'positive' && 'border-primary/20 bg-primary-soft/60',
-        tone === 'gentle' && 'border-border bg-accent/50',
-        tone === 'neutral' && 'border-border bg-card',
+        tone === 'gentle' && 'border-border-soft bg-accent',
+        tone === 'neutral' && 'border-border/70 bg-card',
         className,
       )}
     >
@@ -118,29 +130,50 @@ export function SuggestionCard({ suggestion, today, className }: SuggestionCardP
         type="button"
         onClick={dismiss}
         disabled={pending}
-        className="absolute right-2 top-2 rounded-full p-2 text-muted-foreground transition-colors hover:bg-background/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="absolute right-2.5 top-2.5 rounded-full p-2 text-subtle transition-colors hover:bg-background/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label={`Dismiss: ${suggestion.title}`}
       >
         <X className="size-3.5" aria-hidden="true" />
       </button>
 
-      <p className="text-sm font-medium leading-snug">{suggestion.title}</p>
-      {suggestion.body ? (
-        <p className="mt-1 text-sm text-muted-foreground">{suggestion.body}</p>
-      ) : null}
-
-      {hasAction ? (
-        <div className="mt-3">
-          {action?.kind === 'navigate' ? (
-            <Button size="sm" variant="outline" asChild>
-              <Link href={action.href}>{actionLabel}</Link>
-            </Button>
-          ) : (
-            <Button size="sm" variant="outline" onClick={runAction} disabled={pending}>
-              {actionLabel}
-            </Button>
-          )}
+      <div className="flex items-start gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-[15px] font-semibold leading-snug">{suggestion.title}</p>
+          {suggestion.body ? (
+            <p className="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">
+              {suggestion.body}
+            </p>
+          ) : null}
         </div>
+
+        {hasAction ? (
+          <div className="self-center">
+            {action?.kind === 'navigate' ? (
+              <Link href={action.href} className={pillClass}>
+                {actionLabel}
+              </Link>
+            ) : (
+              <button type="button" className={pillClass} onClick={runAction} disabled={pending}>
+                {actionLabel}
+              </button>
+            )}
+          </div>
+        ) : null}
+      </div>
+
+      {done ? (
+        <p
+          role="status"
+          className="animate-pop absolute inset-0 flex items-center justify-center gap-2.5 bg-sage-soft text-[14.5px] font-semibold"
+        >
+          <span
+            aria-hidden="true"
+            className="flex size-7 items-center justify-center rounded-full bg-sage text-background"
+          >
+            <Check className="size-4" strokeWidth={3} />
+          </span>
+          {done}
+        </p>
       ) : null}
 
       <span className="sr-only">{SUGGESTION_DISCLAIMER}</span>

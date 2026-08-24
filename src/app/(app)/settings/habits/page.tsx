@@ -28,7 +28,7 @@ export default async function HabitSettingsPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="font-display text-xl font-semibold tracking-tight">Daily habits</h1>
+          <h1 className="font-display text-xl tracking-tight">Daily habits</h1>
           <p className="text-xs text-muted-foreground">
             Order sets how they appear on Today. Nothing here is a schedule.
           </p>

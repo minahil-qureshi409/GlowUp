@@ -54,7 +54,7 @@ export function ResetPasswordForm({ hasSession }: { hasSession: boolean }) {
   if (!hasSession) {
     return (
       <div className="surface-card space-y-3 p-6 text-center">
-        <h1 className="font-display text-xl font-semibold">That link has expired</h1>
+        <h1 className="font-display text-xl">That link has expired</h1>
         <p className="text-sm text-muted-foreground">
           Reset links are single use and last an hour. Ask for a fresh one and it will work.
         </p>

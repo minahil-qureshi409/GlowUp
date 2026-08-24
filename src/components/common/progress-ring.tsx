@@ -11,6 +11,12 @@ type ProgressRingProps = {
   children?: React.ReactNode;
   /** Screen-reader description; the ring itself is decorative without it. */
   label?: string;
+  /**
+   * A CSS colour for the indicator, replacing the brand gradient. Pass a
+   * pillar token (`hsl(var(--sage))`) when the ring belongs to one pillar
+   * rather than to the app as a whole.
+   */
+  stroke?: string;
 };
 
 /**
@@ -29,6 +35,7 @@ export function ProgressRing({
   indicatorClassName,
   children,
   label,
+  stroke,
 }: ProgressRingProps) {
   const clamped = Math.max(0, Math.min(100, Number.isFinite(value) ? value : 0));
   const radius = (size - strokeWidth) / 2;
@@ -65,7 +72,7 @@ export function ProgressRing({
           fill="none"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
-          stroke={`url(#${gradientId})`}
+          stroke={stroke ?? `url(#${gradientId})`}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           className={cn('transition-[stroke-dashoffset] duration-700 ease-out', indicatorClassName)}

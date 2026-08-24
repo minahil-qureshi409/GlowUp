@@ -28,10 +28,7 @@ const serverSchema = z.object({
   /** Legacy single-provider override. `CALENDAR_REDIRECT_BASE_URL` supersedes it. */
   GOOGLE_REDIRECT_URI: z.string().url().optional(),
 
-  MICROSOFT_CLIENT_ID: z.string().min(1).optional(),
-  MICROSOFT_CLIENT_SECRET: z.string().min(1).optional(),
   /** `common` covers personal and work accounts; a GUID pins one tenant. */
-  MICROSOFT_TENANT: z.string().min(1).optional(),
 
   /** 32 bytes, hex or base64. Encrypts OAuth tokens at rest. */
   CALENDAR_TOKEN_KEY: z.string().min(1).optional(),
@@ -69,9 +66,6 @@ export function serverEnv() {
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
-    MICROSOFT_CLIENT_ID: process.env.MICROSOFT_CLIENT_ID,
-    MICROSOFT_CLIENT_SECRET: process.env.MICROSOFT_CLIENT_SECRET,
-    MICROSOFT_TENANT: process.env.MICROSOFT_TENANT,
     CALENDAR_TOKEN_KEY: process.env.CALENDAR_TOKEN_KEY,
     CALENDAR_REDIRECT_BASE_URL: process.env.CALENDAR_REDIRECT_BASE_URL,
     CALENDAR_SYNC_SECRET: process.env.CALENDAR_SYNC_SECRET,
@@ -122,20 +116,6 @@ export function googleCalendarConfig() {
     clientId: GOOGLE_CLIENT_ID,
     clientSecret: GOOGLE_CLIENT_SECRET,
     redirectUri: calendarRedirectUri('google'),
-  };
-}
-
-export function microsoftCalendarConfig() {
-  const { MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET, MICROSOFT_TENANT } = serverEnv();
-  if (!MICROSOFT_CLIENT_ID || !MICROSOFT_CLIENT_SECRET) return null;
-  if (!calendarTokenKeyConfigured()) return null;
-  return {
-    clientId: MICROSOFT_CLIENT_ID,
-    clientSecret: MICROSOFT_CLIENT_SECRET,
-    // `common` lets both personal Microsoft accounts and work/school accounts
-    // sign in. A tenant GUID restricts it to one organisation.
-    tenant: MICROSOFT_TENANT ?? 'common',
-    redirectUri: calendarRedirectUri('outlook'),
   };
 }
 

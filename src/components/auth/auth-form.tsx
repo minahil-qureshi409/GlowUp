@@ -170,7 +170,7 @@ function SignUpForm() {
   if (confirmationSent) {
     return (
       <div className="surface-card space-y-3 p-6 text-center">
-        <h1 className="font-display text-xl font-semibold">Check your inbox ✨</h1>
+        <h1 className="font-display text-xl">Check your inbox ✨</h1>
         <p className="text-sm text-muted-foreground">
           We sent a confirmation link to{' '}
           <span className="font-medium text-foreground">{form.getValues('email')}</span>. Open it and
@@ -284,11 +284,11 @@ function SignUpForm() {
 
 export function AuthHeading({ body }: { body: string }) {
   return (
-    <div className="space-y-2 text-center">
-      <p className="font-display text-3xl font-semibold tracking-tight">
+    <div className="space-y-2.5 text-center">
+      <p className="font-display text-display-lg">
         GlowUp <span aria-hidden="true">✨</span>
       </p>
-      <p className="text-sm text-muted-foreground">{body}</p>
+      <p className="text-[14.5px] text-muted-foreground">{body}</p>
     </div>
   );
 }

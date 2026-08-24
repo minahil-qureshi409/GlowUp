@@ -260,6 +260,47 @@ export function dailyPercentMap(
   return result;
 }
 
+export type WeekdayProfile = {
+  /** 0 = Monday, matching how the week reads on the calendar screen. */
+  weekday: number;
+  label: string;
+  /** Mean completion across every occurrence of this weekday in the window. */
+  percent: number;
+  days: number;
+};
+
+const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+/**
+ * Average completion per weekday.
+ *
+ * The shape behind "weekends are harder than weekdays" — which is worth saying
+ * out loud only when it is actually true of this person, so the caller gets the
+ * numbers rather than a verdict.
+ */
+export function weekdayProfile(dailyPercent: Map<DateKey, number>): WeekdayProfile[] {
+  const totals = new Array<number>(7).fill(0);
+  const counts = new Array<number>(7).fill(0);
+
+  for (const [date, percent] of dailyPercent) {
+    // `getDay()` is Sunday-first; shift so Monday is index 0.
+    const index = (new Date(`${date}T00:00:00`).getDay() + 6) % 7;
+    totals[index] = (totals[index] ?? 0) + percent;
+    counts[index] = (counts[index] ?? 0) + 1;
+  }
+
+  return WEEKDAY_LABELS.map((label, index) => {
+    const days = counts[index] ?? 0;
+    const total = totals[index] ?? 0;
+    return {
+      weekday: index,
+      label,
+      percent: days === 0 ? 0 : Math.round(total / days),
+      days,
+    };
+  });
+}
+
 /** Rolling seven-day window ending on (and including) `to`. */
 export function lastSevenDays(to: DateKey): { from: DateKey; to: DateKey } {
   return { from: subDaysKey(to, 6), to };
