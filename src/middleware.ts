@@ -64,8 +64,9 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+  const demoMode = process.env.DEMO_MODE === 'true';
 
-  if (!user && !isPublic(pathname)) {
+  if (!user && !demoMode && !isPublic(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     // Preserve where they were heading so login can send them back.

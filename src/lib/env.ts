@@ -19,6 +19,10 @@ const publicSchema = z.object({
 const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
 
+  /** Temporary local/public demo mode. Keep disabled outside testing. */
+  DEMO_MODE: z.enum(['true', 'false']).default('false').transform((value) => value === 'true'),
+  DEMO_USER_ID: z.string().uuid().optional(),
+
   GOOGLE_CLIENT_ID: z.string().min(1).optional(),
   GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
   /** Legacy single-provider override. `CALENDAR_REDIRECT_BASE_URL` supersedes it. */
@@ -60,6 +64,8 @@ export const env = parsePublic();
 export function serverEnv() {
   return serverSchema.parse({
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    DEMO_MODE: process.env.DEMO_MODE,
+    DEMO_USER_ID: process.env.DEMO_USER_ID,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
@@ -70,6 +76,15 @@ export function serverEnv() {
     CALENDAR_REDIRECT_BASE_URL: process.env.CALENDAR_REDIRECT_BASE_URL,
     CALENDAR_SYNC_SECRET: process.env.CALENDAR_SYNC_SECRET,
   });
+}
+
+export function demoModeEnabled(): boolean {
+  const { DEMO_MODE, DEMO_USER_ID } = serverEnv();
+  if (!DEMO_MODE) return false;
+  if (!DEMO_USER_ID) {
+    throw new Error('DEMO_USER_ID is required when DEMO_MODE=true.');
+  }
+  return true;
 }
 
 export function siteUrl(): string {
