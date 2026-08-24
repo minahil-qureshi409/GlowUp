@@ -40,6 +40,7 @@ declare
   v_entry_id uuid;
   v_step record;
   v_roll numeric;
+  v_conditions skin_condition[];
 begin
   -- ── weekly weigh-ins ───────────────────────────────────────────────────────
   -- A gentle upward drift with realistic noise: the trend line has to have
@@ -130,17 +131,19 @@ begin
 
     -- An occasional skin note.
     if random() < 0.12 then
+      v_conditions := case floor(random() * 5)::int
+        when 0 then array['good']::skin_condition[]
+        when 1 then array['clear']::skin_condition[]
+        when 2 then array['dry']::skin_condition[]
+        when 3 then array['breakout']::skin_condition[]
+        else array['oily', 'irritated']::skin_condition[]
+      end;
+
       insert into public.skin_logs (user_id, log_date, conditions)
       values (
         p_user_id,
         v_day,
-        (array[
-          array['good']::skin_condition[],
-          array['clear']::skin_condition[],
-          array['dry']::skin_condition[],
-          array['breakout']::skin_condition[],
-          array['oily','irritated']::skin_condition[]
-        ])[1 + floor(random() * 5)::int]
+        v_conditions
       )
       on conflict (user_id, log_date) do nothing;
     end if;
