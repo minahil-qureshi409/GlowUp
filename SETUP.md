@@ -382,9 +382,15 @@ Confirm each screen loads with real data:
 The charts, streaks, insights and timeline are more interesting with data behind them.
 This generates **twelve weeks** of plausible history.
 
-> **Development only.** Everything it writes is stamped `source = 'seed'`, which is how
-> the app tells demo content apart from anything you actually log. Don't run it once you
-> have real data you care about.
+> **Development only, and that is not a formality.** Everything it writes is stamped
+> `source = 'seed'`, which is how the app tells demo content apart from anything you
+> actually log. Don't run it once you have real data you care about.
+>
+> Both functions are `SECURITY DEFINER`, so they run as the owner and RLS does not apply
+> to them. The script revokes `execute` from `public`, `anon` and `authenticated` at the
+> end — **do not remove those two lines.** Without them, `clear_demo_history` is a public
+> RPC endpoint that deletes any user's history given their id, callable by anyone holding
+> the anon key (which ships in the browser bundle by design).
 
 1. **SQL Editor** → paste the whole of `supabase/seed/dev_seed.sql` → **Run**. This only
    creates the two functions.
@@ -395,9 +401,55 @@ This generates **twelve weeks** of plausible history.
 select public.seed_demo_history('paste-your-user-id-here');
 ```
 
-You get weekly weigh-ins drifting gently upward with realistic noise, habit completions
-improving from ~55% to ~90%, three workouts most weeks with loads creeping up, skincare
-where mornings beat evenings, and a couple of milestones.
+### What you get
+
+Twelve weeks ending today, and every part of it is shaped to make a specific screen say
+something true rather than to fill a table:
+
+| Data | Shape | Screen it makes work |
+|---|---|---|
+| Weigh-ins | 4/week, 47.0 → ~49.4 kg with noise | Weight chart, trend smoothing, Progress ring |
+| Weight goal | start 45.2, target 54.0, 4 milestones (2 reached) | "% to goal" everywhere it appears |
+| Habit completions | ~58% → ~85%, weekdays ahead of weekends | Habits, Progress, Consistency insight |
+| Streak | the last 23 days forced past the threshold | 24-day streak, counting down to the 30-day milestone |
+| Daily metrics | water 4 → 7, sleep short on Fri/Sat, mood | Hydration + Sleep pillars, vitals row, two Insights panels |
+| Workouts | 3/week cycling templates, loads creeping up | Movement pillar, strength charts, personal bests |
+| Skincare | mornings consistently ahead of evenings | Skincare pillar, routine screens, Skincare insight |
+| Weekly reviews | the last 6 weeks with notes and frozen stats | `/progress/review` |
+| Timeline | 6 milestones across the twelve weeks | `/progress/timeline` |
+
+### Two things worth knowing before you present
+
+**It is deterministic.** `setseed` is called first, so re-running produces the identical
+history. A demo where the streak is 4 one day and 26 the next is one you cannot rehearse.
+
+**Today is left half finished, on purpose.** Breakfast, lunch and the morning routine are
+logged; **dinner, the evening routine and the workout are not**, and water sits at **4 of
+8**. A fully-completed today has nothing to tap and an empty one has nothing to show —
+half-done is the only state where you can demonstrate the app *doing* something. The four
+remaining taps on the water card are the cheapest way to show the completion animation.
+
+### If you are deploying this for the demo
+
+`DEMO_MODE=true` is not "log in as a demo account". `requireUser()` returns a
+**service-role client**, which bypasses RLS entirely, and middleware stops gating routes.
+On a public URL that means every anonymous visitor is signed in as the demo user with
+full write access — including the **Delete my account** button on the Profile screen.
+
+For a presentation, deploy with `DEMO_MODE` unset, sign up a normal account, and run
+`seed_demo_history` against *that* user id. You get the same demo, plus the login screen,
+with none of this.
+
+### Check it before you present
+
+```sql
+\set uid 'paste-your-user-id-here'
+\i supabase/seed/verify_demo.sql
+```
+
+Every query prints an `expect` column beside the real value, so a wrong number is obvious
+without having to remember what right looks like. In the Supabase SQL editor, paste your
+user id over `:'uid'` instead.
 
 Reload **Progress** and the trend line, milestones and consistency chart all fill in.
 

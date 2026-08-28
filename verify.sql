@@ -3,22 +3,26 @@
 -- =============================================================================
 -- Run against the linked Supabase project after applying migrations.
 --
--- Expected, after 20260824000000_neutral_defaults.sql and
--- 20260824000100_calendar_token_encryption.sql:
+-- Expected, after every migration through
+-- 20260824010100_daily_metrics.sql:
 --
---   tables            30   unchanged — neither migration adds or drops a table
---   rls_enabled       30   unchanged — every table still has RLS forced
---   table_policies   116   unchanged — the new columns live on tables that were
---                          already in the owner-scoped policy loop, so the
---                          skincare step editor and the encrypted token columns
---                          needed no new policy. This was checked before
---                          writing one.
+--   tables            31   +1 for `daily_metrics`
+--   rls_enabled       31   +1 — the new table has RLS enabled *and* forced
+--   table_policies   120   +4 — `daily_metrics` carries the same four
+--                          owner-scoped policies as every other table. Every
+--                          other new column added in this round lives on a
+--                          table that was already in the policy loop, so
+--                          nothing else needed one. This was checked before
+--                          writing any.
 --   storage_policies  >=4  the four progress-photo policies
 --   functions          3   seed_user_defaults, handle_new_user, set_updated_at
---                          (both redefined in place with `create or replace`,
---                           so the count does not move)
+--                          (redefined in place with `create or replace`, so the
+--                           count does not move)
 --   signup_trigger     1
 --   photo_bucket       1   and it must still be private
+--
+-- `20260824010000_google_only_calendar_provider.sql` moves none of these: it
+-- rebuilds an enum and recasts one column.
 --
 -- If `table_policies` has moved, something added a policy that was not
 -- intended. Do not just accept a new total.
@@ -57,6 +61,18 @@ select
 from pg_class c
 join pg_namespace n on n.oid = c.relnamespace
 where n.nspname = 'public' and c.relname = 'calendar_credentials';
+
+-- =============================================================================
+-- calendar_provider: Google and nothing else
+-- =============================================================================
+-- Expect exactly one row, 'google'. Apple never had an implementation, and
+-- Outlook was removed rather than left as an option nothing can fulfil.
+
+select enumlabel
+from pg_enum e
+join pg_type t on t.oid = e.enumtypid
+where t.typname = 'calendar_provider'
+order by e.enumsortorder;
 
 -- =============================================================================
 -- New columns from this round of migrations
